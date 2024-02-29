@@ -21,17 +21,23 @@
 
 namespace Oxide.Plugins
 {
-    [Info("AggressiveAnimals", "RFC1920", "1.0.2")]
+    [Info("AggressiveAnimals", "RFC1920", "1.0.3")]
     [Description("Bears, polar bears, and wolves attack when attacked instead of running away")]
     internal class AggressiveAnimals : RustPlugin
     {
+        bool debug = true;
         private object OnEntityTakeDamage(BaseAnimalNPC entity, HitInfo info)
         {
             string nom = entity?.GetType()?.Name;
             if ((nom == "Polarbear" || nom == "Bear" || nom == "Wolf") && entity.health > 20)
             {
+                if (entity?.brain == null) { return null; }
                 entity?.brain?.states.Remove(AIState.Flee);
                 entity?.brain?.states.Remove(AIState.Cover);
+                if (!entity.brain.states.ContainsKey(AIState.Attack))
+                {
+                    entity?.brain?.AddState(new AnimalBrain.AttackState());
+                }
                 entity?.brain?.states[AIState.Attack].StateEnter(entity.brain, entity);
             }
             return null;
